@@ -3,7 +3,7 @@
 Final project for DATA 6545 (Spring 2026). Predicts NFL career longevity (Short, Medium, Long, Elite) using draft information and rookie-year performance.
 
 ## Live Demo
-[Add your Streamlit Cloud URL here after deployment]
+(https://nfl-career-longevity-gjvg3dtdj49z3bvkzxjdnn.streamlit.app/)
 
 ## Project Overview
 - **Target:** Career longevity classified into 4 buckets
