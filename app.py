@@ -21,6 +21,18 @@ def load_artifacts():
 
 model_full, model_skill, metadata = load_artifacts()
 
+st.markdown('''
+<style>
+    .metric-card {
+        background-color: #F0F4F8;
+        padding: 24px;
+        border-radius: 8px;
+        border-left: 5px solid #2ecc71;
+        height: 100%;
+    }
+</style>
+''', unsafe_allow_html=True)
+
 POSITION_NAMES = {
     'QB': 'Quarterback (QB)',
     'RB': 'Running Back (RB)',
@@ -123,6 +135,7 @@ chosen_model = model_skill if is_skill else model_full
 model_label = "Skill-Position Model" if is_skill else "Full Model"
 
 prediction = chosen_model.predict(feature_row)[0]
+display_prediction = 'Veteran' if prediction == 'Elite' else prediction
 probabilities = chosen_model.predict_proba(feature_row)[0]
 classes = chosen_model.classes_
 
@@ -130,17 +143,17 @@ col1, col2 = st.columns([1, 1])
 
 with col1:
     st.subheader("Prediction")
-    color_map = {'Short': '#e74c3c', 'Medium': '#3498db', 'Long': '#2ecc71', 'Elite': '#f39c12'}
-    pred_color = color_map.get(prediction, '#FFFFFF')
+    color_map = {'Short': '#e74c3c', 'Medium': '#3498db', 'Long': '#2ecc71', 'Veteran': '#f39c12', 'Elite': '#f39c12'}
+    pred_color = color_map.get(display_prediction, '#FFFFFF')
     
     st.markdown(f"""
     <div style="background-color: #F0F4F8; padding: 30px; border-radius: 8px; border-left: 6px solid {pred_color};">
         <p style="color: #5A6C82 !important; margin-bottom: 8px; font-size: 13px; font-weight: 600;">PREDICTED CAREER LENGTH</p>
-        <h1 style="color: {pred_color} !important; margin: 0; font-size: 64px; font-weight: 700;">{prediction}</h1>
+        <h1 style="color: {pred_color} !important; margin: 0; font-size: 64px; font-weight: 700;">{display_prediction}</h1>
         <p style="color: #1A2332 !important; margin-top: 8px; font-size: 18px; font-weight: 500;">{
-            '0–2 seasons' if prediction == 'Short' else
-            '3–5 seasons' if prediction == 'Medium' else
-            '6–8 seasons' if prediction == 'Long' else
+            '0–2 seasons' if display_prediction == 'Short' else
+            '3–5 seasons' if display_prediction == 'Medium' else
+            '6–8 seasons' if display_prediction == 'Long' else
             '9+ seasons'
         }</p>
         <p style="color: #5A6C82 !important; margin-top: 16px; font-size: 13px;">Using: {model_label}</p>
@@ -151,7 +164,10 @@ with col2:
     st.subheader("Probability Breakdown")
     
     prob_df = pd.DataFrame({'Class': classes, 'Probability': probabilities})
-    prob_df = prob_df.sort_values('Probability', ascending=True)
+    prob_df['Class'] = prob_df['Class'].replace({'Elite': 'Veteran'})
+    class_order = ['Short', 'Medium', 'Long', 'Veteran', 'Elite']
+    prob_df['order'] = prob_df['Class'].map({c: i for i, c in enumerate(class_order)})
+    prob_df = prob_df.sort_values('order', ascending=True).drop(columns='order')
     
     fig = go.Figure(go.Bar(
         x=prob_df['Probability'],
